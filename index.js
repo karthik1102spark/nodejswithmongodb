@@ -1,9 +1,8 @@
 var app = require('express')();
 var server = require('http').Server(app);
 const { Product } = require('./modal/Product')
-// const { ProductDetails } = require('./modal/ProductDetails')
-
-var port = process.env.PORT || '3004';
+const { ProductDetails } = require('./modal/ProductDetails')
+var port = process.env.PORT || '3001';
 var mongoose = require('mongoose')
 var multipart = require('connect-multiparty');
 app.use(multipart());
@@ -21,10 +20,7 @@ mongoose.connection.once('open',function(){
 
 app.post('/createProduct',async(req,res)=>{
     
-var getFormData = {
-    productName : req.body.productName,
-    price : req.body.price,
-}
+var getFormData = req.body
 const listProduct = await Product.find()
 
 const getProduct = await Product.findOne({_id: req.body.id}).exec()
@@ -52,6 +48,7 @@ if(req.body.id){
     //     success: 1,
     //     msg: "updated Product Successfully",
     // })
+    console.log('false');
     return res.json({success: true})
 
 
@@ -59,34 +56,34 @@ if(req.body.id){
 
         const providers = new Product(getFormData)    
 
-        // await providers.save(function (err, response) {
-        //     if (err) {
-        //         console.log({err: err})
-        //         return
-        //     }
-        //     console.log({
-        //         success: 1,
-        //         msg: "Created Successfully",
-        //         data: response
-        //     })
-            
-        // })
-
-        await providers.save(function (err, response) {
-            console.log('response.id',response.id);
+        providers.save(function (err, response) {
             if (err) {
                 console.log({err: err})
                 return
             }
-            console.log({
-                success: 1,
-                msg: "Created Successfully",
-                data: response
-            })
-            
-        })
+            console.log(getFormData);
+            getFormData.product_id=response.id
+            const providerDetails = new ProductDetails(getFormData) ;   
     
-        return res.json({success: true})
+            providerDetails.save(function (err, response) {
+                console.log('response.id',response.id);
+                if (err) {
+                    console.log({err: err})
+                    return
+                }
+                console.log({
+                    success: 1,
+                    msg: "Created Successfully",
+                    data: response
+                })
+                return res.json({success: true})
+            })
+        
+
+        })
+
+
+    
     
 }
   
